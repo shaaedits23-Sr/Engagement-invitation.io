@@ -435,6 +435,102 @@ section{
 }
 .map-btn:hover{background:var(--gold); color:var(--ivory);}
 .map-btn[disabled], .map-btn.disabled{opacity:0.4; pointer-events:none;}
+   <!-- ============== SCRATCH TO REVEAL DATE ============== -->
+  <div class="scratch-wrap reveal-on-scroll">
+    <div class="scratch-label">Scratch to reveal the date</div>
+    <div class="scratch-stage">
+      <div class="scratch-reveal" id="revealText">
+        —
+        <small id="revealSub">—</small>
+      </div>
+      <canvas id="scratchCanvas"></canvas>
+    </div>
+    <div class="scratch-hint">Swipe your finger across the gold ✨</div>
+  </div>
+
+  <!-- ============== COUNTDOWN ============== -->
+  <div class="countdown reveal-on-scroll" id="countdown">
+    <div class="cd-box"><div class="cd-num" id="cdDays">00</div><div class="cd-label">Days</div></div>
+    <div class="cd-box"><div class="cd-num" id="cdHours">00</div><div class="cd-label">Hrs</div></div>
+    <div class="cd-box"><div class="cd-num" id="cdMins">00</div><div class="cd-label">Min</div></div>
+    <div class="cd-box"><div class="cd-num" id="cdSecs">00</div><div class="cd-label">Sec</div></div>
+  </div>
+
+  <!-- ============== GALLERY ============== -->
+  <div class="section-label reveal-on-scroll">Our Moments</div>
+  <div class="gallery reveal-on-scroll" id="gallery">
+    <div class="photo-card"><img src="couple-1.jpg" alt="Engagement photo 1" loading="lazy"></div>
+    <div class="photo-card"><img src="couple-3.jpg" alt="Engagement photo 2" loading="lazy"></div>
+    <div class="photo-card"><img src="IMG-20260824-WA0095.jpg" alt="Engagement photo 3" loading="lazy"></div>
+  </div>
+
+  <!-- ============== DETAILS ============== -->
+  <div class="details reveal-on-scroll">
+    <div class="detail-row">
+      <div class="detail-icon">📅</div>
+      <div class="detail-title" id="detailDate">September 6th, 2026</div>
+      <div class="detail-sub" id="detailTime">11:00 AM onwards</div>
+    </div>
+    <div class="ornament"><div class="line"></div><svg viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="12" cy="12" r="4"/></svg><div class="line"></div></div>
+    <div class="detail-row">
+      <div class="detail-icon">📍</div>
+      <div class="detail-title" id="venueName">Sahakara Kalyana Mandapam</div>
+      <div class="detail-sub" id="venueAddress">Gundugolanu, Andhra Pradesh 534427</div>
+      <a class="maps-btn" id="mapsBtn" href="#" target="_blank" rel="noopener">📍 Open in Google Maps</a>
+    </div>
+  </div>
+
+  <!-- ============== FOOTER / SHARE ============== -->
+  <div class="footer reveal-on-scroll">
+    <div class="verse">بارك الله لكما وبارك عليكما وجمع بينكما في خير</div>
+    <div class="tagline">Your presence will make our celebration complete.</div>
+    <div class="share-row">
+      <a class="share-btn wa" id="waShare" href="#" target="_blank" rel="noopener">📲 WhatsApp</a>
+      <button class="share-btn copy" id="copyLink">🔗 Copy Link</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================================
+   CONFIG — edit everything here. Nothing else below needs to change
+   for a normal update (names, date, venue, photos, music, message).
+   ========================================================================= */
+const CONFIG = {
+  bride: "Shaheena",
+  groom: "Mansoor",
+
+  // Message under the couple's names on the hero section.
+  inviteMessage: 'Two hearts, one journey. <strong>Shaheena &amp; Mansoor</strong> request the blessing of your presence as they begin their new life together, InshaAllah.',
+
+  // ISO date-time — drives the countdown, the scratch reveal and the cover subtitle.
+  // Format: YYYY-MM-DDTHH:MM:SS (24-hour clock, local venue time)
+  eventDateTimeISO: "2026-09-06T11:00:00",
+  dateDisplay: "September 6th, 2026",
+  timeDisplay: "11:00 AM onwards",
+
+  venueName: "Sahakara Kalyana Mandapam",
+  venueAddress: "Gundugolanu, Andhra Pradesh 534427",
+  googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=Sahakara+Kalyana+Mandapam+Gundugolanu+Andhra+Pradesh+534427",
+
+  // Featured hero photo (the big one right under the hero section)
+  featuredPhoto: "couple-1.jpg",
+
+  // Gallery photos — add/remove rows freely. No captions shown.
+  gallery: [
+    { src: "couple-1.jpg" },
+    { src: "couple-3.jpg" },
+    { src: "IMG-20260824-WA0095.jpg" }
+  ],
+
+  // Background music file kept in /assets. Leave "" to hide the music button.
+  musicFile: "music.mp3",
+
+  // WhatsApp share button text.
+  shareMessage: "You're invited to Shaheena & Mansoor's Engagement! 💍✨ Tap to see the date, time & venue: "
+};
+   
 
 /* ---- Countdown ---- */
 #countdown .section-title{margin-bottom:36px;}
@@ -940,3 +1036,158 @@ document.addEventListener('keydown', function(e){
 </script>
 </body>
 </html>
+/* =========================================================================
+   SCRATCH-TO-REVEAL CARD (+ petal pop burst on completion)
+   ========================================================================= */
+let scratchDone = false;
+(function scratchCard(){
+  const canvas = document.getElementById('scratchCanvas');
+  const stage  = canvas.parentElement;
+  const ctx = canvas.getContext('2d');
+  const reveal = document.getElementById('revealText');
+  reveal.innerHTML = `${CONFIG.dateDisplay}<small>${CONFIG.timeDisplay}</small>`;
+
+  function size(){
+    const r = stage.getBoundingClientRect();
+    canvas.width = r.width; canvas.height = r.height;
+    paintScratchLayer();
+  }
+  function paintScratchLayer(){
+    const g = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+    g.addColorStop(0, '#e9cd7a'); g.addColorStop(0.5, '#d4af37'); g.addColorStop(1, '#b8912a');
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = 'rgba(10,54,40,0.85)';
+    ctx.font = '600 13px Poppins, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('✨ Scratch here ✨', canvas.width/2, canvas.height/2);
+  }
+  window.addEventListener('resize', size);
+  size();
+
+  let scratching = false;
+  function pos(e){ const r = canvas.getBoundingClientRect(); const p = e.touches ? e.touches[0] : e; return { x: p.clientX - r.left, y: p.clientY - r.top }; }
+  function scratchAt(x,y){ ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); ctx.arc(x, y, 26, 0, Math.PI*2); ctx.fill(); }
+  function estimateCleared(){
+    const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+    let cleared = 0, total = 0;
+    for (let i=3; i<data.length; i+=24){ total++; if (data[i] < 10) cleared++; }
+    return total ? cleared/total : 0;
+  }
+  function maybeAutoFinish(){
+    if (scratchDone) return;
+    if (estimateCleared() > 0.55){
+      scratchDone = true;
+      canvas.style.transition = 'opacity .5s ease';
+      canvas.style.opacity = '0';
+      setTimeout(()=> canvas.style.display='none', 500);
+      petalBurst(stage);
+    }
+  }
+  function start(e){ scratching = true; const p = pos(e); scratchAt(p.x,p.y); }
+  function move(e){ if(!scratching) return; e.preventDefault(); const p = pos(e); scratchAt(p.x,p.y); maybeAutoFinish(); }
+  function end(){ scratching = false; maybeAutoFinish(); }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  canvas.addEventListener('touchstart', start, {passive:true});
+  canvas.addEventListener('touchmove', move, {passive:false});
+  canvas.addEventListener('touchend', end);
+})();
+
+function petalBurst(stageEl){
+  const layer = document.getElementById('burst-layer');
+  const appRect = document.getElementById('app').getBoundingClientRect();
+  const stageRect = stageEl.getBoundingClientRect();
+  const originX = stageRect.left - appRect.left + stageRect.width/2;
+  const originY = stageRect.top; // relative to viewport (fixed layer)
+
+  const emojis = ['🌸','🌺','✨','🌼'];
+  const count = 26;
+  for (let i=0; i<count; i++){
+    const el = document.createElement('div');
+    el.className = 'burst-petal';
+    el.textContent = emojis[i % emojis.length];
+    el.style.left = originX + 'px';
+    el.style.top  = originY + 'px';
+    layer.appendChild(el);
+
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 80 + Math.random() * 160;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 60; // bias upward
+    const rot = (Math.random() - 0.5) * 720;
+    const dur = 900 + Math.random() * 700;
+
+    el.animate([
+      { transform: 'translate(0,0) rotate(0deg) scale(0.6)', opacity: 1 },
+      { transform: `translate(${dx*0.6}px, ${dy}px) rotate(${rot*0.6}deg) scale(1)`, opacity: 1, offset: 0.5 },
+      { transform: `translate(${dx}px, ${dy + 220}px) rotate(${rot}deg) scale(0.8)`, opacity: 0 }
+    ], { duration: dur, easing: 'cubic-bezier(.2,.7,.3,1)' });
+
+    setTimeout(() => el.remove(), dur + 50);
+  }
+}
+
+/* =========================================================================
+   FALLING PETALS (ambient, continuous, lightweight canvas)
+   ========================================================================= */
+(function petals(){
+  const canvas = document.getElementById('petal-canvas');
+  const ctx = canvas.getContext('2d');
+  let w, h;
+  function resize(){ w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const COUNT = window.innerWidth < 480 ? 14 : 20;
+  const colors = ['#e8a0a5', '#d4af37', '#f2c6c9'];
+  const petalsArr = Array.from({length: COUNT}, () => spawn());
+
+  function spawn(recycle){
+    return {
+      x: Math.random() * w, y: recycle ? -20 : Math.random() * h,
+      size: 6 + Math.random() * 7, speedY: 0.35 + Math.random() * 0.8,
+      speedX: (Math.random() - 0.5) * 0.6, sway: Math.random() * Math.PI * 2,
+      swaySpeed: 0.01 + Math.random() * 0.02, rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.02, color: colors[Math.floor(Math.random()*colors.length)],
+      opacity: 0.45 + Math.random() * 0.4
+    };
+  }
+  function drawPetal(p){
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.globalAlpha = p.opacity; ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.ellipse(0, 0, p.size, p.size*0.6, 0, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  let raf;
+  function frame(){
+    ctx.clearRect(0,0,w,h);
+    petalsArr.forEach(p => {
+      p.sway += p.swaySpeed; p.y += p.speedY; p.x += p.speedX + Math.sin(p.sway)*0.6; p.rot += p.rotSpeed;
+      if (p.y > h + 20){ Object.assign(p, spawn(true)); }
+      drawPetal(p);
+    });
+    raf = requestAnimationFrame(frame);
+  }
+  frame();
+  document.addEventListener('visibilitychange', () => { if (document.hidden) cancelAnimationFrame(raf); else frame(); });
+})();
+
+/* =========================================================================
+   BACKGROUND MUSIC TOGGLE (button appears once the invitation is opened)
+   ========================================================================= */
+let musicPlaying = false;
+if (!CONFIG.musicFile){ musicBtn.style.display = 'none'; }
+musicBtn.addEventListener('click', () => {
+  if (musicPlaying){
+    audioEl.pause(); musicBtn.classList.remove('playing'); musicBtn.textContent = '♪';
+  } else {
+    audioEl.play().catch(()=>{});
+    musicBtn.classList.add('playing'); musicBtn.textContent = '❚❚';
+  }
+  musicPlaying = !musicPlaying;
+});
+</script>
+</body>
+  </html>
