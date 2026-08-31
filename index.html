@@ -210,10 +210,10 @@ const WEDDING_CONFIG = {
   musicFile: "wedding -music.mp3",
 
   // Replace these filenames with your own photos if needed.
-  galleryImages: [
-    "68825.jpg",
-    "68820.jpg",
-    "69343.png"
+   [
+  
+    "couple-2.jpg",
+    "photo 1.png"
   ]
 };
 </script>
@@ -517,10 +517,10 @@ const WEDDING_CONFIG = {
   updateCountdown(); setInterval(updateCountdown,1000);
 
   // Gallery
-  const gallery=$("gallery");
+  const gallery=$("");
   WEDDING_CONFIG.galleryImages.forEach((src,i)=>{
     const img=document.createElement("img");
-    img.src=src; img.alt="Shaheena and Mansoor engagement photo "+(i+1);
+    img.src=src; img.alt=" love  "+(i+1);
     img.loading="lazy";
     img.onerror=()=>{img.style.display="none"};
     img.onclick=()=>openLightbox(src);
